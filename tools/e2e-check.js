@@ -56,6 +56,27 @@ async function shot(page, name) {
     await shot(page, '01-menu');
     step('load menu', await page.locator('text=ASHWALKER').count() > 0);
 
+    await page.locator('button:has-text("Archive")').click({ force: true });
+    await page.waitForTimeout(300);
+    await shot(page, '00a-archive');
+    step('archive screen renders', await page.locator('.card').count() > 0, `cards visible: ${await page.locator('.card').count()}`);
+    await page.locator('button:has-text("Back")').click({ force: true });
+    await page.waitForTimeout(200);
+
+    await page.locator('button:has-text("Trials")').click({ force: true });
+    await page.waitForTimeout(300);
+    await shot(page, '00b-trials');
+    step('trials screen renders', true);
+    await page.locator('button:has-text("Back")').click({ force: true });
+    await page.waitForTimeout(200);
+
+    await page.locator('button:has-text("How to Play")').click({ force: true });
+    await page.waitForTimeout(300);
+    await shot(page, '00c-howto');
+    step('how-to screen renders', true);
+    await page.locator('button:has-text("Back")').click({ force: true });
+    await page.waitForTimeout(200);
+
     await page.locator('button:has-text("Begin Climb")').click();
     await page.waitForTimeout(300);
     await shot(page, '02-map');
