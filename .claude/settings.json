@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git init)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git show *)",
+      "Bash(git remote *)",
+      "Bash(gh *)",
+      "Bash(node *)",
+      "Bash(node -e *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)",
+      "Bash(pwd)",
+      "Write",
+      "Edit"
+    ]
+  }
+}

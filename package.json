@@ -1,0 +1,11 @@
+{
+  "name": "ashwalker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ashwalker — a roguelike deckbuilder for mobile Safari.",
+  "scripts": {
+    "test": "node test/run-tests.js",
+    "serve": "node tools/serve.js"
+  }
+}
