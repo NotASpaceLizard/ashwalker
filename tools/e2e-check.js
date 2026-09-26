@@ -131,16 +131,19 @@ async function shot(page, name) {
     await shot(page, '06-back-to-map');
     step('claimed reward, back to map', await page.locator('.map-node').count() > 0);
 
-    for (let i = 0; i < 4; i++) {
+    const nodeTypesSeen = new Set();
+    for (let i = 0; i < 10; i++) {
       const avail = page.locator('.map-node.available').first();
       if (await avail.count() === 0) break;
       await avail.click({ force: true }).catch(() => {});
       await page.waitForTimeout(500);
-      await shot(page, `07-explore-${i}`);
-      // Leave whatever non-combat screen we landed on via any obvious primary action, so the loop can
-      // return to the map for the next node; if it's combat, just stop exploring (already exercised).
-      if (await page.locator('.hand').count() > 0) { step('exploration hit combat', true, 'stopping explore loop'); break; }
-      const leaveButtons = ['Leave Shop', 'Continue', 'Open it', 'Heal', 'Take it'];
+      if (await page.locator('.hand').count() > 0) { nodeTypesSeen.add('Combat'); step('exploration hit combat', true, 'stopping explore loop'); break; }
+      const h2Text = (await page.locator('h2').first().textContent().catch(() => '')) || '';
+      if (/Rest Site/.test(h2Text)) { nodeTypesSeen.add('Rest'); await shot(page, '07-rest'); }
+      else if (/Shop/.test(h2Text)) { nodeTypesSeen.add('Shop'); await shot(page, '07-shop'); }
+      else if (/Treasure/.test(h2Text)) { nodeTypesSeen.add('Treasure'); await shot(page, '07-treasure'); }
+      else if (h2Text) { nodeTypesSeen.add(`Event(${h2Text})`); await shot(page, '07-event'); }
+      const leaveButtons = ['Leave Shop', 'Continue', 'Open it', 'Heal'];
       let acted = false;
       for (const label of leaveButtons) {
         const btn = page.locator(`button:has-text("${label}")`).first();
@@ -151,8 +154,9 @@ async function shot(page, name) {
         if (await anyChoice.count() > 0) { await anyChoice.click({ force: true }).catch(() => {}); await page.waitForTimeout(400); }
       }
     }
+    result.nodeTypesSeen = [...nodeTypesSeen];
     await shot(page, '08-final');
-    step('exploration pass complete', true);
+    step('exploration pass complete', true, `node types seen: ${[...nodeTypesSeen].join(', ')}`);
 
     result.ok = result.pageErrors.length === 0;
   } catch (e) {
