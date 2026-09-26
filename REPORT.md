@@ -158,6 +158,12 @@ Two independent layers:
   crash and the duplicate-outcome-timer race): both were invisible from reading the code in isolation
   and only showed up under actual rapid interaction.
 
+A second pass ran the same check directly against the live deployed URL (post-deploy, see §7) and also
+explored further into the map, confirming Rest sites, Shop, and two different Event nodes (narrative
+text, choices, and their effects) all render and resolve correctly against the real content — not just
+combat. Archive and Trials were also verified against the full real dataset (75 non-curse/non-starter
+cards, 50 relics) rather than a placeholder.
+
 This is a real substitute for on-device testing of *game logic and rendering*, but not for iOS-specific
 input/gesture quirks (Safari's own touch/scroll/zoom behavior) — those still benefit from a real-device
 pass, which the user is best positioned to do post-handoff.
