@@ -119,14 +119,59 @@ together, fixed any effect-vocabulary violations, and resolved numeric outliers.
 validator (plain JS, no agent cost) then cross-checked every effect op against the closed vocabulary and
 flagged id collisions before the result ever reached the main session.
 
-*(Filled in after integration: final counts, any anomalies found, and the Archive starting-unlock split.)*
+Final counts: 80 unique cards (30 Common, 30 Uncommon, 15 Rare, 5 Curse), 50 relics (15/15/8/6/4/2 across
+Common/Uncommon/Rare/Boss/Event/Shop), 27 enemies, 18 events, 14 potions — matching the bible's targets
+exactly. The raw synthesis pass had two data quirks, both caught and fixed before they reached the game:
 
-## 6. Deployment
+- **5 duplicate card ids.** The cards-synthesis agent's returned list accidentally still contained
+  malformed early-draft copies of the 5 curse cards (typed as `Skill`/`Common` instead of `Curse`)
+  alongside the correct final versions. Fixed by a downstream integration pass that converts the array
+  to an id-keyed object in original order, so the correct, later entry naturally overwrites the
+  malformed one — no manual special-casing needed.
+- **24 event card-rewards referenced card ids that were never authored.** The events-authoring agents
+  invented flavorful ids like `boon_cinderheart`/`curse_ashguilt` for narrative rewards without
+  visibility into the real card id list (cards and events were authored in parallel, independent
+  domains). Caught by a targeted follow-up pass that read every event's context and remapped each
+  invalid id to a real, thematically-reasonable card (a boon → an existing Common/Uncommon card; a
+  punishment → one of the 5 real Curse cards), rather than just dropping the reward. Also added a
+  defensive guard directly in the engine (`addCardToDeck`/`addCardToHand` now silently no-op on an
+  unknown card id) so a *future* content gap of this shape degrades gracefully instead of corrupting
+  run state — belt-and-suspenders over relying on content review alone.
 
-*(Filled in once pushed: repo URL, Pages URL, and what the one unavoidable `git push` prompt looked
-like.)*
+Archive starting-unlock split (per the bible's "early runs shouldn't be degenerate" goal): both Starter
+cards/relic are unlocked immediately, plus the alphabetically-first 35% of Common-rarity cards (11 of 30)
+and relics (6 of 15). Everything else (the rest of Common, all Uncommon/Rare/Boss/Event/Shop) is locked
+behind Sparks until earned through play.
 
-## 7. Known limitations / deliberate scope cuts
+## 6. Verification
+
+Two independent layers:
+- **22 unit tests** (`test/*.test.js`, run via `npm test` / `node test/run-tests.js`) covering the effect
+  interpreter, status math, combat turn structure, map generation invariants, the Sparks/unlock/Trials
+  formulas, and every regression in §3.
+- **End-to-end browser verification** using a WebKit engine (the same engine Safari uses) already cached
+  on this machine from a prior project, driven with an iPhone-13-shaped context (390×844, 3x device
+  scale, touch enabled, Mobile Safari user agent) via `tools/e2e-check.js`. This actually played the game
+  — started a run, fought and won two real combats back to back against real generated enemies, claimed
+  gold/potion/card rewards, and continued exploring the map — while capturing screenshots and asserting
+  zero console/page errors. This is what caught the two most serious bugs in §3 (the reward-screen null
+  crash and the duplicate-outcome-timer race): both were invisible from reading the code in isolation
+  and only showed up under actual rapid interaction.
+
+This is a real substitute for on-device testing of *game logic and rendering*, but not for iOS-specific
+input/gesture quirks (Safari's own touch/scroll/zoom behavior) — those still benefit from a real-device
+pass, which the user is best positioned to do post-handoff.
+
+## 7. Deployment
+
+Repo: https://github.com/NotASpaceLizard/ashwalker (public, personal account — not the work
+Accenture-Federal-hosted GitHub, confirmed deliberately since this machine is signed into both).
+Live URL: **https://notaspacelizard.github.io/ashwalker/** — served directly from the `master` branch
+root via GitHub Pages (no build step, no Actions workflow needed, since the app is already static files).
+The one unavoidable permission prompt in this whole build was `git push` — the org's managed Claude Code
+policy force-asks it unconditionally regardless of any allowlist, so it was expected and is not a bug.
+
+## 8. Known limitations / deliberate scope cuts
 
 - No custom illustrated card art — cards are text + a rarity-colored border + a type icon, consistent
   with the brief ("visually stunning" was explicitly not the bar; "functionally engaging" was).

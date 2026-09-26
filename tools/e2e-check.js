@@ -50,7 +50,8 @@ async function shot(page, name) {
     page.on('console', (msg) => { if (msg.type() === 'error') result.consoleErrors.push(msg.text()); });
     page.on('pageerror', (err) => result.pageErrors.push(String(err)));
 
-    await page.goto('http://localhost:8787/index.html', { waitUntil: 'load' });
+    const targetUrl = process.env.TARGET_URL || 'http://localhost:8787/index.html';
+    await page.goto(targetUrl, { waitUntil: 'load' });
     await page.waitForTimeout(300);
     await shot(page, '01-menu');
     step('load menu', await page.locator('text=ASHWALKER').count() > 0);
